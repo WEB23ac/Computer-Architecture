@@ -30,9 +30,10 @@ class CPU:
                     comment_split = line.split('#')
                     # remove whitespace
                     instruction = comment_split[0].strip()
+
                     if instruction == '':
                         continue
-                    self.ram[address] = instruction
+                    self.ram[address] = int(instruction)
                     address += 1
         except FileNotFoundError:
             print('File not Found')
@@ -91,14 +92,14 @@ class CPU:
         return mdr
 
     def interpret_opcode(self, opcode):
-        print(f'interpreter opcode: {opcode}')
-
+        # opcode = int(opcode)
+        # print(f'interpreter opcode: {opcode}')
         commands = {
             0b10000010: 'LDI',
             0b01000111: 'PRN',
             0b00000001: 'HLT'
         }
-        print('matching command = ', commands[opcode])
+        # print('matching command = ', commands[opcode])
         return commands[opcode]
 
     def run(self):
@@ -112,6 +113,8 @@ class CPU:
 
         while command is not 'HLT':
             print('self.ram', self.ram)
+            print('ir', ir)
+            print('ram[ir]', self.ram[ir])
             command = self.interpret_opcode(self.ram[ir])
             if command == 'LDI':
                 reg_a = self.ram[ir+1]
