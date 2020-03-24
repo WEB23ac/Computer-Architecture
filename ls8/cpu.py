@@ -33,7 +33,7 @@ class CPU:
 
                     if instruction == '':
                         continue
-                    self.ram[address] = int(instruction)
+                    self.ram_write(instruction, address)
                     address += 1
         except FileNotFoundError:
             print('File not Found')
