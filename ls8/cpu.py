@@ -157,9 +157,6 @@ class CPU:
             ir = self.interpret_command(command)
             operand_a = self.ram_read(self.pc+1)
             operand_b = self.ram_read(self.pc+2)
-            # print(ir)
-            # print('ram', self.ram)
-            # print('register', self.register)
             if ir == 'LDI':
                 self.register[operand_a] = operand_b
                 self.pc += 3
@@ -171,16 +168,15 @@ class CPU:
                 self.pc += 2
 
             if ir == 'PUSH':
-                print('current operand_a', operand_a)
                 # * Decrements register at SP by one
                 val = self.register[operand_a]
                 self.register[self.sp] -= 1
                 # * Copies the value at the given register to the address pointed to by SP
-                self.ram_write(self.register[self.sp], val)
+                self.ram_write(val, self.register[self.sp])
+                # self.ram[self.register[self.sp]] = val
                 self.pc += 2
 
             if ir == 'POP':
-                print('current operand_a', operand_a)
                 reg = operand_a
                 val = self.ram_read(self.register[self.sp])
                 self.register[reg] = val
