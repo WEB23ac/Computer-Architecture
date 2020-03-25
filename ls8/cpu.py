@@ -1,6 +1,46 @@
 """CPU functionality."""
 
 import sys
+from commands import *
+
+
+class CommandInterpreter:
+
+    def __init__(self):
+        self.create_branchtable()
+
+    def create_branchtable(self):
+        self.branchtable = {}
+        filename = 'commands.py'
+        with open(filename) as f:
+            for line in f:
+                cmt_split = line.split('=')
+                cmd_name = cmt_split[0].stri()
+                cmd_value = cmt_split[1].replace('\n', '')
+
+            name_function = 'handle_' + cmd_name
+            function = getattr(self, name_function)
+            self.branchtable[int(cmd_value, 2)] = function
+
+    def handle_LDI(self, a, b):
+        reg_a = self.ram_read(a)
+        reb_b = self.ram_read(b)
+        self.reg[reg_a] = reb_b
+        self.pc += 3
+
+    def handle_PRN(self, a, b):
+        reg_a = self.ram_read(a)
+        res = self.reg[reg_a]
+        print(res)
+
+    def handle_MUL(self, a, b):
+        reg_a = self.ram_read(a)
+        reg_b = self.ram_read(b)
+        self.alu('MUL', reg_a, reg_b)
+
+    def handle_HLT(self, a, b):
+        running = False
+        self.pc += 1
 
 
 class CPU:
@@ -111,6 +151,11 @@ class CPU:
         running = True
 
         while running:
+            # ir = self.ram_read(self.pc)
+            # a = self.ram_read(self.pc+1)
+            # b = self.ram_read(self.pc+2)
+
+            # self.branchtable[ir](a, b)
             command = self.ram_read(self.pc)
             # print('-------- cmd2', command)
             instruction = self.interpret_command(command)
