@@ -4,43 +4,43 @@ import sys
 from commands import *
 
 
-class CommandInterpreter:
+# class CommandInterpreter:
 
-    def __init__(self):
-        self.create_branchtable()
+#     def __init__(self):
+#         self.create_branchtable()
 
-    def create_branchtable(self):
-        self.branchtable = {}
-        filename = 'commands.py'
-        with open(filename) as f:
-            for line in f:
-                cmt_split = line.split('=')
-                cmd_name = cmt_split[0].stri()
-                cmd_value = cmt_split[1].replace('\n', '')
+#     def create_branchtable(self):
+#         self.branchtable = {}
+#         filename = 'commands.py'
+#         with open(filename) as f:
+#             for line in f:
+#                 cmt_split = line.split('=')
+#                 cmd_name = cmt_split[0].stri()
+#                 cmd_value = cmt_split[1].replace('\n', '')
 
-            name_function = 'handle_' + cmd_name
-            function = getattr(self, name_function)
-            self.branchtable[int(cmd_value, 2)] = function
+#             name_function = 'handle_' + cmd_name
+#             function = getattr(self, name_function)
+#             self.branchtable[int(cmd_value, 2)] = function
 
-    def handle_LDI(self, a, b):
-        reg_a = self.ram_read(a)
-        reb_b = self.ram_read(b)
-        self.register[reg_a] = reb_b
-        self.pc += 3
+#     def handle_LDI(self, a, b):
+#         reg_a = self.ram_read(a)
+#         reb_b = self.ram_read(b)
+#         self.register[reg_a] = reb_b
+#         self.pc += 3
 
-    def handle_PRN(self, a, b):
-        reg_a = self.ram_read(a)
-        res = self.register[reg_a]
-        print(res)
+#     def handle_PRN(self, a, b):
+#         reg_a = self.ram_read(a)
+#         res = self.register[reg_a]
+#         print(res)
 
-    def handle_MUL(self, a, b):
-        reg_a = self.ram_read(a)
-        reg_b = self.ram_read(b)
-        self.alu('MUL', reg_a, reg_b)
+#     def handle_MUL(self, a, b):
+#         reg_a = self.ram_read(a)
+#         reg_b = self.ram_read(b)
+#         self.alu('MUL', reg_a, reg_b)
 
-    def handle_HLT(self, a, b):
-        running = False
-        self.pc += 1
+#     def handle_HLT(self, a, b):
+#         running = False
+#         self.pc += 1
 
 
 class CPU:
@@ -157,9 +157,9 @@ class CPU:
             ir = self.interpret_command(command)
             operand_a = self.ram_read(self.pc+1)
             operand_b = self.ram_read(self.pc+2)
-            print(ir)
-            print('ram', self.ram)
-            print('register', self.register)
+            # print(ir)
+            # print('ram', self.ram)
+            # print('register', self.register)
             if ir == 'LDI':
                 self.register[operand_a] = operand_b
                 self.pc += 3
@@ -171,14 +171,16 @@ class CPU:
                 self.pc += 2
 
             if ir == 'PUSH':
+                print('current operand_a', operand_a)
                 # * Decrements register at SP by one
+                val = self.register[operand_a]
                 self.register[self.sp] -= 1
                 # * Copies the value at the given register to the address pointed to by SP
-                val = self.register[operand_a]
                 self.ram_write(self.register[self.sp], val)
                 self.pc += 2
 
             if ir == 'POP':
+                print('current operand_a', operand_a)
                 reg = operand_a
                 val = self.ram_read(self.register[self.sp])
                 self.register[reg] = val
