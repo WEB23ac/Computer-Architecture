@@ -1,6 +1,46 @@
 """CPU functionality."""
 
 import sys
+from commands import *
+
+
+# class CommandInterpreter:
+
+#     def __init__(self):
+#         self.create_branchtable()
+
+#     def create_branchtable(self):
+#         self.branchtable = {}
+#         filename = 'commands.py'
+#         with open(filename) as f:
+#             for line in f:
+#                 cmt_split = line.split('=')
+#                 cmd_name = cmt_split[0].stri()
+#                 cmd_value = cmt_split[1].replace('\n', '')
+
+#             name_function = 'handle_' + cmd_name
+#             function = getattr(self, name_function)
+#             self.branchtable[int(cmd_value, 2)] = function
+
+#     def handle_LDI(self, a, b):
+#         reg_a = self.ram_read(a)
+#         reb_b = self.ram_read(b)
+#         self.register[reg_a] = reb_b
+#         self.pc += 3
+
+#     def handle_PRN(self, a, b):
+#         reg_a = self.ram_read(a)
+#         res = self.register[reg_a]
+#         print(res)
+
+#     def handle_MUL(self, a, b):
+#         reg_a = self.ram_read(a)
+#         reg_b = self.ram_read(b)
+#         self.alu('MUL', reg_a, reg_b)
+
+#     def handle_HLT(self, a, b):
+#         running = False
+#         self.pc += 1
 
 
 class CPU:
@@ -10,7 +50,8 @@ class CPU:
         """Construct a new CPU."""
         self.pc = 0
         self.ram = [0] * 256
-        self.reg = [0] * 8
+        self.register = [0] * 8
+        self.sp = 7
 
     def load(self):
         """Load a program into memory."""
@@ -59,9 +100,9 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.reg[reg_a] += self.reg[reg_b]
+            self.register[reg_a] += self.register[reg_b]
         if op == 'MUL':
-            self.reg[reg_a] *= self.reg[reg_b]
+            self.register[reg_a] *= self.register[reg_b]
         # elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -82,15 +123,15 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02X" % self.register[i], end='')
 
         print()
 
-    def ram_write(self, val, address):
-        self.ram[address] = val
+    def ram_write(self, mdr, mar):
+        self.ram[mar] = mdr
 
-    def ram_read(self, address):
-        return self.ram[address]
+    def ram_read(self, mar):
+        return self.ram[mar]
 
     def interpret_command(self, opcode):
         # opcode = int(opcode)
@@ -100,39 +141,52 @@ class CPU:
             0b01000111: 'PRN',
             0b00000001: 'HLT',
             0b10100010: 'MUL',
+            0b01000101: 'PUSH',
+            0b01000110: 'POP'
         }
         # print('matching command = ', commands[opcode], type(commands[opcode]))
         return commands[opcode]
 
     def run(self):
         """Run the CPU."""
-        self.pc = 0
         command = ''
         running = True
 
         while running:
             command = self.ram_read(self.pc)
-            # print('-------- cmd2', command)
-            instruction = self.interpret_command(command)
-            # print('pc ->', self.pc)
-            if instruction == 'LDI':
-                reg_a = self.ram_read(self.pc+1)
-                reg_b = self.ram_read(self.pc+2)
-                self.reg[reg_a] = reg_b
+            ir = self.interpret_command(command)
+            operand_a = self.ram_read(self.pc+1)
+            operand_b = self.ram_read(self.pc+2)
+            if ir == 'LDI':
+                self.register[operand_a] = operand_b
                 self.pc += 3
-            if instruction == 'MUL':
-                reg_a = self.ram_read(self.pc+1)
-                reg_b = self.ram_read(self.pc+2)
-                self.alu(instruction, reg_a, reg_b)
+            if ir == 'MUL':
+                self.alu(ir, operand_a, operand_b)
                 self.pc += 3
-            if instruction == 'PRN':
-                register = self.ram_read(self.pc+1)
-                res = self.reg[register]
-                print(res)
+            if ir == 'PRN':
+                print(self.register[operand_a])
                 self.pc += 2
-            if instruction == 'HLT':
+
+            if ir == 'PUSH':
+                # * Decrements register at SP by one
+                val = self.register[operand_a]
+                self.register[self.sp] -= 1
+                # * Copies the value at the given register to the address pointed to by SP
+                self.ram_write(val, self.register[self.sp])
+                # self.ram[self.register[self.sp]] = val
+                self.pc += 2
+
+            if ir == 'POP':
+                reg = operand_a
+                val = self.ram_read(self.register[self.sp])
+                self.register[reg] = val
+                # * Incrememnt value at SP
+                self.register[self.sp] += 1
+                self.pc += 2
+
+            if ir == 'HLT':
                 running = False
                 self.pc += 1
             # else:
-            #     print(f'Instruction {command} not recognized.')
+            #     print(f'ir {command} not recognized.')
             #     sys.exit()
