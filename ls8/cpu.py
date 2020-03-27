@@ -118,10 +118,6 @@ class CPU:
                 # ! A is equal to B -- use code '3'
                 self.fl = 3
 
-        # elif op == "SUB": etc
-        # else:
-        #     raise Exception("Unsupported ALU operation")
-
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -149,8 +145,6 @@ class CPU:
         return self.ram[mar]
 
     def interpret_command(self, opcode):
-        # opcode = int(opcode)
-        # print(f'interpreter opcode: {opcode}')
         commands = {
             0b10000010: 'LDI',
             0b01000111: 'PRN',
@@ -166,7 +160,6 @@ class CPU:
             0b01010101: 'JEQ',
             0b01010100: 'JMP'
         }
-        # print('matching command = ', commands[opcode], type(commands[opcode]))
         return commands[opcode]
 
     def run(self):
@@ -197,7 +190,6 @@ class CPU:
                 self.register[self.sp] -= 1
                 # * Copies the value at the given register to the address pointed to by SP
                 self.ram_write(val, self.register[self.sp])
-
                 self.pc += 2
 
             if ir == 'POP':
