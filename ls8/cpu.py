@@ -69,6 +69,7 @@ class CPU:
         self.ram = [0] * 256
         self.register = [0] * 8
         self.sp = 7
+        self.fl = 0
 
     def load(self):
         """Load a program into memory."""
@@ -105,6 +106,18 @@ class CPU:
             self.register[reg_a] += self.register[reg_b]
         if op == 'MUL':
             self.register[reg_a] *= self.register[reg_b]
+        # TODO -- add SUB functionality and use for CMP
+        if op == 'CMP':
+            if self.register[reg_a] - self.register[reg_b] > 0:
+                # ! A is less than B -- use code '1'
+                self.fl = 1
+            if self.register[reg_b] - self.register[reg_a] > 0:
+                # ! B is less than A -- use code '2'
+                self.fl = 2
+            elif self.register[reg_a] - self.register[reg_b] == 0:
+                # ! A is equal to B -- use code '3'
+                self.fl = 3
+
         # elif op == "SUB": etc
         # else:
         #     raise Exception("Unsupported ALU operation")
@@ -137,7 +150,7 @@ class CPU:
 
     def interpret_command(self, opcode):
         # opcode = int(opcode)
-        print(f'interpreter opcode: {opcode}')
+        # print(f'interpreter opcode: {opcode}')
         commands = {
             0b10000010: 'LDI',
             0b01000111: 'PRN',
@@ -147,7 +160,11 @@ class CPU:
             0b01000101: 'PUSH',
             0b01000110: 'POP',
             0b01010000: 'CALL',
-            0b00010001: 'RET'
+            0b00010001: 'RET',
+            0b10100111: 'CMP',
+            0b01010110: 'JNE',
+            0b01010101: 'JEQ',
+            0b01010100: 'JMP'
         }
         # print('matching command = ', commands[opcode], type(commands[opcode]))
         return commands[opcode]
@@ -159,9 +176,9 @@ class CPU:
 
         while running:
             command = self.ram_read(self.pc)
-            print('command', command)
+            # print('command', command)
             ir = self.interpret_command(command)
-            print('ir', ir)
+            # print('ir', ir)
             operand_a = self.ram_read(self.pc+1)
             operand_b = self.ram_read(self.pc+2)
             if ir == 'LDI':
@@ -180,7 +197,7 @@ class CPU:
                 self.register[self.sp] -= 1
                 # * Copies the value at the given register to the address pointed to by SP
                 self.ram_write(val, self.register[self.sp])
-                # self.ram[self.register[self.sp]] = val
+
                 self.pc += 2
 
             if ir == 'POP':
@@ -198,15 +215,37 @@ class CPU:
                 self.alu('ADD', operand_a, operand_b)
                 self.pc += 3
 
-            elif ir == 'CALL':
+            if ir == 'CALL':
                 self.register[self.sp] -= 1
                 self.ram[self.register[self.sp]] = self.pc + 2
                 self.pc = self.register[operand_a]
 
-            elif ir == 'RET':
+            if ir == 'RET':
                 val = self.ram[self.register[self.sp]]
                 self.pc = val
                 self.register[self.sp] += 1
+
+            if ir == 'CMP':
+                self.alu('CMP', operand_a, operand_b)
+                self.pc += 3
+
+            if ir == 'JMP':
+                loc = self.register[operand_a]
+                self.pc = loc
+
+            if ir == 'JNE':
+                if self.fl == 1 or self.fl == 2:
+                    loc = self.register[operand_a]
+                    self.pc = loc
+                else:
+                    self.pc += 2
+
+            if ir == 'JEQ':
+                if self.fl == 3:
+                    loc = self.register[operand_a]
+                    self.pc = loc
+                else:
+                    self.pc += 2
 
             # else:
             #     print(f'ir {command} not recognized.')
