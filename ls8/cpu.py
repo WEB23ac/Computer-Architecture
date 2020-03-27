@@ -118,6 +118,30 @@ class CPU:
                 # ! A is equal to B -- use code '3'
                 self.fl = 3
 
+        if op == 'AND':
+            self.register[reg_a] = self.register[reg_a] & self.register[reg_b]
+
+        if op == 'OR':
+            self.register[reg_a] = self.register[reg_a] | self.register[reg_b]
+
+        if op == 'XOR':
+            self.register[reg_a] = self.register[reg_a] ^ self.register[reg_b]
+
+        if op == 'NOT':
+            self.register[reg_a] = ~self.register[reg_a]
+
+        if op == 'SHL':
+            self.register[reg_a] = self.register[reg_a] << self.register[reg_b]
+
+        if op == 'SHR':
+            self.register[reg_a] = self.register[reg_a] >> self.register[reg_b]
+
+        if op == 'MOD':
+            if self.register[reg_b] == 0:
+                print('Error: second register cannot be zero.')
+            else:
+                self.register[reg_a] = self.register[reg_a] % self.register[reg_b]
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
@@ -158,7 +182,8 @@ class CPU:
             0b10100111: 'CMP',
             0b01010110: 'JNE',
             0b01010101: 'JEQ',
-            0b01010100: 'JMP'
+            0b01010100: 'JMP',
+            0b10101000: 'AND',
         }
         return commands[opcode]
 
@@ -239,6 +264,30 @@ class CPU:
                 else:
                     self.pc += 2
 
-            # else:
-            #     print(f'ir {command} not recognized.')
-            #     sys.exit()
+            if ir == 'AND':
+                self.alu('AND', operand_a, operand_b)
+                self.pc += 3
+
+            if ir == 'OR':
+                self.alu('OR', operand_a, operand_b)
+                self.pc += 3
+
+            if ir == 'XOR':
+                self.alu('XOR', operand_a, operand_b)
+                self.pc += 3
+
+            if ir == 'NOT':
+                self.alu('NOT', operand_a, operand_b)
+                self.pc += 2
+
+            if ir == 'SHL':
+                self.alu('SHL', operand_a, operand_b)
+                self.pc += 3
+
+            if ir == 'SHR':
+                self.alu('SHR', operand_a, operand_b)
+                self.pc += 3
+
+            if ir == 'MOD':
+                self.alu('MOD', operand_a, operand_b)
+                self.pc += 3
